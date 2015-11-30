@@ -11,16 +11,16 @@ using namespace std;
 
 void allocatePercent(double* (*buffer), double percentToUse, MEMORYSTATUSEX statex)
 {
-    if ((*buffer) != NULL)
-        free((*buffer));
     if (percentToUse > MEMMAX)
     {
         cout << "Going to allocate too much memory!" << endl;
         return;
     }
 
-    long long int sizealloc = ((percentToUse/100.0)*statex.ullAvailPhys)+sizeof(double);
-    cout << "Bytes:" << sizealloc << endl;
+    long long int sizealloc = ((percentToUse/100.0)*statex.ullAvailPageFile)+sizeof(double);
+    if ((*buffer) != NULL)
+        free((*buffer));
+    cout << "GB Allocated:" << sizealloc/(pow(10, 9)) << endl;
     double* tempBuff = NULL;
     tempBuff = (double*) malloc(sizealloc);
     if (tempBuff == NULL)
@@ -43,18 +43,20 @@ int main()
     double X1, X2, dT, A;
     statex.dwLength = sizeof (statex);
 
-    clock_t time0 = clock();
-    clock_t time1 = clock();
-    clock_t time2 = clock();
-
     cout << "X1: ";
     cin >> X1;
     cout << "X2: ";
     cin >> X2;
     cout << "Time to take (sec): ";
     cin >> dT;
-    cout << "Amplitude (% of available RAM): ";
+    cout << "Amplitude (% " << statex.ullAvailPageFile/pow(10, 9) << "GB): ";
     cin >> A;
+    cout << "Open up task manager!" << endl;
+    Sleep(2000);
+
+    clock_t time0 = clock();
+    clock_t time1 = clock();
+    clock_t time2 = clock();
 
     for (double C = X1;C < X2;C += ((time2-time1)/((double)CLOCKS_PER_SEC))/(dT/X2))
     {
