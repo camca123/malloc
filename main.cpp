@@ -49,7 +49,7 @@ int main()
     cin >> X2;
     cout << "Time to take (sec): ";
     cin >> dT;
-    cout << "Amplitude (% " << statex.ullAvailPageFile/pow(10, 9) << "GB): ";
+    cout << "Amplitude (% of RAM to use): ";
     cin >> A;
     cout << "Open up task manager!" << endl;
     Sleep(2000);
