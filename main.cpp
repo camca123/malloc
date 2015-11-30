@@ -2,46 +2,71 @@
 #include <tchar.h>
 #include <iostream>
 #include <cmath>
+#include <ctime>
 
-#define MEMMAX 95.0
+#define MEMMAX 100.0
+#define PI 3.1415926535
 
 using namespace std;
 
-void allocatePercent(double* buffer, double percentToUse, MEMORYSTATUSEX statex)
+void allocatePercent(double* (*buffer), double percentToUse, MEMORYSTATUSEX statex)
 {
+    if ((*buffer) != NULL)
+        free((*buffer));
     if (percentToUse > MEMMAX)
     {
         cout << "Going to allocate too much memory!" << endl;
         return;
     }
 
-    long long int sizealloc = (int)(((percentToUse/100.0)*statex.ullAvailPhys)/sizeof(double));
-    buffer = (double*) calloc ((int)sizealloc, sizeof(double));
-    if (buffer == NULL)
+    long long int sizealloc = ((percentToUse/100.0)*statex.ullAvailPhys)+sizeof(double);
+    cout << "Bytes:" << sizealloc << endl;
+    double* tempBuff = NULL;
+    tempBuff = (double*) malloc(sizealloc);
+    if (tempBuff == NULL)
     {
         cout << "Buffer allocation error" << endl;
         exit (1);
     }
-    for (long long int i = 0; i < sizealloc; i++)
-        buffer[i] = 0.0;
-    free (buffer);
+    else
+    {
+        (*buffer) = tempBuff;
+        for (unsigned long long int i = 0; i < (sizealloc/sizeof(double)); i ++)
+            (*buffer)[i] = 0.0;
+    }
 }
 
 int main()
 {
     MEMORYSTATUSEX statex;
+    double* buffer = NULL;
+    double X1, X2, dT, A;
     statex.dwLength = sizeof (statex);
-    double* buffer;
 
-    for (double C = 0.0;C < 3.14159;C += 0.1)
+    clock_t time0 = clock();
+    clock_t time1 = clock();
+    clock_t time2 = clock();
+
+    cout << "X1: ";
+    cin >> X1;
+    cout << "X2: ";
+    cin >> X2;
+    cout << "Time to take (sec): ";
+    cin >> dT;
+    cout << "Amplitude (% of available RAM): ";
+    cin >> A;
+
+    for (double C = X1;C < X2;C += ((time2-time1)/((double)CLOCKS_PER_SEC))/(dT/X2))
     {
-        allocatePercent(buffer, sin(C) * 100.0, statex);
-        cout << (sin(C) * 100.0) << endl;
+        time1 = clock();
+        allocatePercent(&buffer, abs(sin(C) * A), statex);
         GlobalMemoryStatusEx (&statex);
         cout << statex.dwMemoryLoad << "% of memory in use" << endl;
-        Sleep(1000);
+        time2 = clock();
     }
+    if (buffer != NULL)
+        free(buffer);
     GlobalMemoryStatusEx (&statex);
-    cout << statex.dwMemoryLoad << "% of memory in use" << endl;
+    cout << statex.dwMemoryLoad << "% of memory in use" << ", Total Time: " << (clock()-time0/((double)CLOCKS_PER_SEC)) << endl;
     return 0;
 }
